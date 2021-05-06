@@ -53,7 +53,6 @@
     });
 
     map.on('load', function () {
-
       // Map layers go here!
       map.addLayer({
         id: 'OSM-water',
@@ -99,27 +98,38 @@
           'fill-opacity': 0.5
         }
       });
-
-
-      //Click event goes here!
-      map.on('click', function(e) {
-        var eventLngLat = [e.lngLat.lng, e.lngLat.lat];
-        //makeRadius function goes here!
-        function makeRadius(lngLatArray, radiusInMeters){
-          var point = turf.point(lngLatArray)
-          var buffered = turf.buffer(point, radiusInMeters, { units: 'meters' });
-          returned buffered;
-        }
-        //console.log(eventLngLat)
-        var searchRadius = makeRadius(eventLngLat, 500);
-        map.getSource('search-radius').setData(searchRadius);
-      });
-
-      //spatialJoin function goes here!
     });
 
+    //Click event goes here!
+    map.on('click', function(e) {
+      var eventLngLat = [e.lngLat.lng, e.lngLat.lat];
+      //console.log(eventLngLat)
+      //makeRadius function goes here!
+      var searchRadius = makeRadius(eventLngLat, 500);
+      map.getSource('search-radius').setData(searchRadius);
+      //spatial join to radius
+      var featuresInBuffer = spatialJoin('OSM-water', searchRadius);
+      map.getSource('selected-water').setData(turf.featureCollection(featuresInBuffer));
+    });
 
+    //makeRadius function goes here!
+    function makeRadius(lngLatArray, radiusInMeters) {
+      var point = turf.point(lngLatArray);
+      var buffered = turf.buffer(point, radiusInMeters, { units: 'meters' });
+      return buffered;
+    };
 
+    //spatialJoin function goes here!
+    function spatialJoin(sourceLayer, filterFeature) {
+      // Need this line to specify the array since map.getSource in the click event doesn't do this.
+      sourceGeoJSON = map.querySourceFeatures(sourceLayer);
+      // Loop through all the features in the source geojson and return the ones that
+      // are inside the filter feature (buffered radius) and are confirmed landing sites
+      var joined = sourceGeoJSON.filter(function (feature) {
+        return turf.booleanPointInPolygon(feature, filterFeature) && feature.properties.type === 'Free_standing';
+      });
+      return joined;
+    };
   </script>
 
 </body>
