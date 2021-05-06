@@ -42,7 +42,7 @@
   </div>
   <script>
     // Data showing water points - replace the dummy URL with your own.
-    var url = 'https://github.com/eevenden/studio-week5/blob/main/zaatari_water.geojson'
+    var url = './zaatari_water.geojson'
 
     mapboxgl.accessToken = 'pk.eyJ1IjoiZWV2ZW5kZW4iLCJhIjoiY2tsaWV4ZjgxMDZ5bTJwbHlud2ZpbmdrayJ9.YncVdwMOnwOqwF24Pm5ZhA';
     var map = new mapboxgl.Map({
@@ -85,13 +85,40 @@
           'circle-radius': 3
         }
       });
+
+      // Draw the search radius on the map
+      map.addLayer({
+        id: 'search-radius',
+        source: {
+          type: 'geojson',
+          data: {"type": "FeatureCollection", "features": []}
+        },
+        type: 'fill',
+        paint: {
+          'fill-color': '#fcf683',
+          'fill-opacity': 0.5
+        }
+      });
+
+
+      //Click event goes here!
+      map.on('click', function(e) {
+        var eventLngLat = [e.lngLat.lng, e.lngLat.lat];
+        //makeRadius function goes here!
+        function makeRadius(lngLatArray, radiusInMeters){
+          var point = turf.point(lngLatArray)
+          var buffered = turf.buffer(point, radiusInMeters, { units: 'meters' });
+          returned buffered;
+        }
+        //console.log(eventLngLat)
+        var searchRadius = makeRadius(eventLngLat, 500);
+        map.getSource('search-radius').setData(searchRadius);
+      });
+
+      //spatialJoin function goes here!
     });
 
-    //Click event goes here!
 
-    //makeRadius function goes here!
-
-    //spatialJoin function goes here!
 
   </script>
 
